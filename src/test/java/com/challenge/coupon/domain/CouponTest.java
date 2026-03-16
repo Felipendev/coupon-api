@@ -76,6 +76,61 @@ public class CouponTest {
         }
 
         @Test
+        @DisplayName("throws when code is null")
+        void throwsWhenCodeIsNull() {
+            assertThatThrownBy(() -> Coupon.create(null, DESCRIPTION, VALID_DISCOUNT, FUTURE, false))
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessageContaining("Code is required");
+        }
+
+        @Test
+        @DisplayName("throws when code is blank")
+        void throwsWhenCodeIsBlank() {
+            assertThatThrownBy(() -> Coupon.create("   ", DESCRIPTION, VALID_DISCOUNT, FUTURE, false))
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessageContaining("Code is required");
+        }
+
+        @Test
+        @DisplayName("throws when description is null")
+        void throwsWhenDescriptionIsNull() {
+            assertThatThrownBy(() -> Coupon.create(VALID_CODE, null, VALID_DISCOUNT, FUTURE, false))
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessageContaining("Description is required");
+        }
+
+        @Test
+        @DisplayName("throws when description is blank")
+        void throwsWhenDescriptionIsBlank() {
+            assertThatThrownBy(() -> Coupon.create(VALID_CODE, "  ", VALID_DISCOUNT, FUTURE, false))
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessageContaining("Description is required");
+        }
+
+        @Test
+        @DisplayName("throws when discount value is null")
+        void throwsWhenDiscountValueIsNull() {
+            assertThatThrownBy(() -> Coupon.create(VALID_CODE, DESCRIPTION, null, FUTURE, false))
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessageContaining("Discount value is required");
+        }
+
+        @Test
+        @DisplayName("throws when expiration date is null")
+        void throwsWhenExpirationDateIsNull() {
+            assertThatThrownBy(() -> Coupon.create(VALID_CODE, DESCRIPTION, VALID_DISCOUNT, null, false))
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessageContaining("Expiration date is required");
+        }
+
+        @Test
+        @DisplayName("trims description when has leading/trailing spaces")
+        void trimsDescription() {
+            Coupon coupon = Coupon.create(VALID_CODE, "  Desc  ", VALID_DISCOUNT, FUTURE, false);
+            assertThat(coupon.getDescription()).isEqualTo("Desc");
+        }
+
+        @Test
         @DisplayName("can create as published")
         void canCreatePublished() {
             Coupon coupon = Coupon.create(VALID_CODE, DESCRIPTION, VALID_DISCOUNT, FUTURE, true);
