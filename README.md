@@ -67,6 +67,35 @@ Resposta (201): `id`, `code` (sanitizado, ex: `ABC123`), `description`, `discoun
 - Testes de **service** (`CouponServiceImplTest`): criação e delete com repositório mockado.
 - Testes de **integração** (`CouponControllerIntegrationTest`): fluxo completo de criação, GET e delete via HTTP.
 
+### Cobertura (≥ 80% nas regras de negócio)
+
+A cobertura é medida com **JaCoCo**. O mínimo de **80% de linhas** é exigido sobre o código de regras de negócio (domínio, service e controller); aplicação principal, DTOs e classes de exceção ficam fora da conta.
+
+**Como ver o relatório:**
+
+1. Rode os testes e gere o relatório:
+   ```bash
+   ./mvnw clean test jacoco:report
+   ```
+2. Abra no navegador o HTML:
+   ```
+   target/site/jacoco/index.html
+   ```
+   Você verá a cobertura por pacote e por classe (linhas e branches).
+
+**Como garantir o mínimo de 80%:**
+
+O plugin JaCoCo está configurado para **falhar o build** se a cobertura ficar abaixo de 80% no código considerado. Use:
+
+```bash
+./mvnw verify
+```
+
+Se a cobertura estiver abaixo do mínimo, o build falha com uma mensagem como:
+`Rule violated for bundle coupon-api: lines covered ratio is 0.xx, but expected minimum is 0.80`.
+
+O mínimo configurável está em `pom.xml` na propriedade `jacoco.minimum.line.coverage`.
+
 ## Docker
 
 Build da imagem:
