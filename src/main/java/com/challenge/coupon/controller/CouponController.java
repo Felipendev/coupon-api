@@ -26,4 +26,9 @@ public class CouponController implements CouponAPI{
         Coupon coupon = service.couponDetail(id);
         return new CouponDetailResponse(coupon);
     }
+
+    @Override
+    public void delete(UUID id) {
+    service.delete(id);
+    }
 }
