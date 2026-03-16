@@ -2,6 +2,8 @@
 
 API REST para cadastro e exclusão lógica de cupons, com regras de negócio encapsuladas no domínio (DDD), tratamento de exceções padronizado e documentação OpenAPI (Swagger).
 
+**Board do projeto (Kanban):** [GitHub Project →](https://github.com/users/Felipendev/projects/1) — Backlog, TODO, In progress, In review, Done.
+
 ## Requisitos
 
 - Java 17+
