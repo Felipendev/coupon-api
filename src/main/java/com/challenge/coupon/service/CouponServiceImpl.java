@@ -46,4 +46,16 @@ public class CouponServiceImpl implements CouponService {
     public Coupon couponDetail(UUID id) {
         return repository.findById(id).orElseThrow(() -> new BusinessException("Coupon not found", HttpStatus.NOT_FOUND));
     }
+
+    @Override
+    public void delete(UUID id) {
+        if (repository.existsByIdAndDeletedTrue(id)) {
+            throw new BusinessException("Coupon already deleted");
+        }
+        Coupon coupon = repository.findById(id).orElseThrow(() ->
+                new BusinessException("Coupon not found", HttpStatus.NOT_FOUND));
+        coupon.delete();
+        repository.save(coupon);
+
+    }
 }

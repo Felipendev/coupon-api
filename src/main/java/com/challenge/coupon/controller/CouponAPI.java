@@ -5,6 +5,7 @@ import com.challenge.coupon.dto.CouponResponse;
 import com.challenge.coupon.dto.CouponDetailResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,4 +25,8 @@ public interface CouponAPI {
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     CouponDetailResponse couponDetail(@PathVariable UUID id);
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void delete(@PathVariable UUID id);
 }

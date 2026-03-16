@@ -9,4 +9,5 @@ import java.util.UUID;
 public interface CouponService {
     CouponResponse create(CouponRequest request);
     Coupon couponDetail(UUID id);
+    void delete(UUID id);
 }
