@@ -27,7 +27,7 @@ public class CouponController implements CouponAPI {
     @Override
     public ResponseEntity<CouponDetailResponse> couponDetail(UUID id) {
         Coupon coupon = service.couponDetail(id);
-        return ResponseEntity.ok(new CouponDetailResponse(coupon));
+        return ResponseEntity.ok(CouponDetailResponse.from(coupon));
     }
 
     @Override
