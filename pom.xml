@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.challenge</groupId>
-	<artifactId>coupon</artifactId>
+	<artifactId>coupon-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>coupon</name>
+	<name>coupon-api</name>
 	<description>Coupon API - Coupon management service</description>
 	<url/>
 	<licenses>
@@ -49,6 +49,11 @@
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-h2console</artifactId>
 		</dependency>
 
 		<dependency>
