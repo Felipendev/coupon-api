@@ -9,7 +9,10 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -37,5 +40,10 @@ public class CouponServiceImpl implements CouponService {
             log.error("[error] CouponServiceImpl.create duplicate code={}", request.code(), exception);
             throw new BusinessException("Coupon code already exists");
         }
+    }
+
+    @Override
+    public Coupon couponDetail(UUID id) {
+        return repository.findById(id).orElseThrow(() -> new BusinessException("Coupon not found", HttpStatus.NOT_FOUND));
     }
 }
