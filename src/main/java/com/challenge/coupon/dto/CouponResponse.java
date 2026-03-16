@@ -2,24 +2,14 @@ package com.challenge.coupon.dto;
 
 import com.challenge.coupon.domain.Coupon;
 import lombok.Builder;
-import lombok.Value;
-import lombok.extern.jackson.Jacksonized;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
-@Value
 @Builder
-@Jacksonized
-public class CouponResponse {
-    UUID id;
-    String code;
-    String description;
-    BigDecimal discountValue;
-    LocalDate expirationDate;
-    boolean published;
-
+public record CouponResponse(UUID id, String code, String description, BigDecimal discountValue,
+                             LocalDate expirationDate, boolean published) {
     public static CouponResponse from(Coupon coupon) {
         return CouponResponse.builder()
                 .id(coupon.getId())
