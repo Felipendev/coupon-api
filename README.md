@@ -7,24 +7,53 @@ API REST para cadastro e exclusão lógica de cupons, com regras de negócio enc
 - Java 17+
 - Maven 3.8+ (ou use o wrapper: `./mvnw`)
 
-## Execução local
+## Ambientes (dev / prod)
+
+A aplicação usa **perfis Spring** para separar desenvolvimento e produção.
+
+| Perfil | Banco        | Uso                          |
+|--------|--------------|------------------------------|
+| **dev** (padrão) | H2 em memória | Desenvolvimento local, testes |
+| **prod**        | PostgreSQL   | Produção ou simulação com Docker |
+
+### Desenvolvimento (dev – padrão)
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-Ou, com Maven instalado:
+Ou explicitamente:
 
 ```bash
-mvn spring-boot:run
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-A API sobe em `http://localhost:8080`.
+- Banco **H2** em memória; schema recriado a cada subida (`ddl-auto: create-drop`).
+- **Console H2** habilitado: http://localhost:8080/h2-console  
+- **Swagger** habilitado: http://localhost:8080/swagger-ui.html  
 
-- **Swagger UI**: http://localhost:8080/swagger-ui.html  
-- **OpenAPI JSON**: http://localhost:8080/v3/api-docs  
+### Produção (prod – PostgreSQL)
 
-Banco em memória H2; console H2 em desenvolvimento: http://localhost:8080/h2-console (habilitado em `application.yaml`).
+Variáveis de ambiente (recomendado em produção):
+
+- `SPRING_PROFILES_ACTIVE=prod`
+- `SPRING_DATASOURCE_URL=jdbc:postgresql://host:5432/coupondb`
+- `SPRING_DATASOURCE_USERNAME=...`
+- `SPRING_DATASOURCE_PASSWORD=...`
+
+Exemplo local com Postgres na porta 5432:
+
+```bash
+export SPRING_PROFILES_ACTIVE=prod
+export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/coupondb
+export SPRING_DATASOURCE_USERNAME=postgres
+export SPRING_DATASOURCE_PASSWORD=postgres
+./mvnw spring-boot:run
+```
+
+- Schema gerenciado pelo Hibernate (`ddl-auto: update`).
+- Console H2 e Swagger desligados por padrão (podem ser reativados via `SPRINGDOC_*` e `spring.h2.console.enabled`).
+- Pool Hikari configurado (tamanho, timeouts) para maior robustez.
 
 ## Endpoints
 
@@ -98,20 +127,24 @@ O mínimo configurável está em `pom.xml` na propriedade `jacoco.minimum.line.c
 
 ## Docker
 
-Build da imagem:
+### Build da imagem
 
 ```bash
-./mvnw package -DskipTests
 docker build -t coupon-api .
 ```
 
-Execução com Docker Compose:
+### Execução com Docker Compose (ambiente prod + PostgreSQL)
+
+Sobe a API e um container PostgreSQL; a API usa o perfil **prod** e conecta no Postgres.
 
 ```bash
 docker compose up --build
 ```
 
-A aplicação fica disponível em `http://localhost:8080` (porta mapeada no `docker-compose.yml`).
+- **API**: http://localhost:8080  
+- **PostgreSQL**: porta 5432 (usuário/senha: `postgres`, banco: `coupondb`)
+
+O healthcheck do Postgres garante que a API só inicia após o banco estar pronto.
 
 ## Decisões técnicas
 
@@ -119,4 +152,5 @@ A aplicação fica disponível em `http://localhost:8080` (porta mapeada no `doc
 - **Domínio**: regras em `Coupon.create()` e `Coupon.delete()`; validações de expiração, desconto e sanitização do código no domínio.
 - **Exceções**: `BusinessException` com status HTTP configurável; `GlobalExceptionHandler` (`@RestControllerAdvice`) para respostas padronizadas e Bean Validation (erros de validação retornam mapa de campo → mensagem).
 - **Soft delete**: campo `deleted` na entidade; `@SQLRestriction("deleted = false")` (Hibernate) para não retornar deletados nas buscas; delete por id verifica “já deletado” via query nativa antes de chamar o domínio.
-- **Stack**: Spring Boot 4.0, Java 17, H2, JPA, SpringDoc (Swagger), Bean Validation.
+- **Stack**: Spring Boot 4.0, Java 17, H2 (dev), PostgreSQL (prod), JPA, SpringDoc (Swagger), Bean Validation.
+- **Ambientes**: perfil `dev` (H2, console e Swagger ativos) e `prod` (PostgreSQL, variáveis de ambiente, pool Hikari, Swagger/H2 desabilitados por padrão).
