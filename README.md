@@ -70,6 +70,10 @@ Resposta (201): `id`, `code` (sanitizado, ex: `ABC123`), `description`, `discoun
 - Testes de **service** (`CouponServiceImplTest`): criação e delete com repositório mockado.
 - Testes de **integração** (`CouponControllerIntegrationTest`): fluxo completo de criação, GET e delete via HTTP.
 
+## CI (GitHub Actions)
+
+O workflow em `.github/workflows/ci.yml` roda em **push** nas branches `main`, `dev`, `feature/**`, `fix/**`, `test/**`, `docs/**`, `chore/**` e `ci/**`, e em **pull request** para `main` e `dev`. Passos: checkout, Java 17 (Eclipse Temurin) com cache Maven e `./mvnw clean verify` (build, testes e checagem de cobertura ≥ 80%). O relatório JaCoCo é publicado como artefato da run.
+
 ### Cobertura (≥ 80% nas regras de negócio)
 
 A cobertura é medida com **JaCoCo**. O mínimo de **80% de linhas** é exigido sobre o código de regras de negócio (domínio, service e controller); aplicação principal, DTOs e classes de exceção ficam fora da conta.
@@ -101,26 +105,34 @@ O mínimo configurável está em `pom.xml` na propriedade `jacoco.minimum.line.c
 
 ## Docker
 
-Build e execução:
+### Build a partir do código-fonte
+
+Na raiz do projeto (onde estão `Dockerfile`, `pom.xml`, `mvnw` e `src/`):
 
 ```bash
-cd /caminho/para/coupon-api
 docker build -t coupon-api .
-docker run -p 8080:8080 coupon-api
 ```
 
-Ou com Docker Compose:
+### Build apenas com o JAR
+
+Se você tiver só o JAR (ex.: `target/coupon-api-0.0.1-SNAPSHOT.jar`), coloque na mesma pasta o `Dockerfile.jar` e o JAR e rode:
+
+```bash
+docker build -f Dockerfile.jar -t coupon-api .
+```
+
+### Execução com Docker Compose
 
 ```bash
 docker compose up --build
 ```
 
-A API fica em http://localhost:8080 (H2 em memória dentro do container).
+A aplicação fica disponível em `http://localhost:8080` (porta mapeada no `docker-compose.yml`).
 
 ## Decisões técnicas
 
 - **Estrutura**: controller → service → domain + repository; DTOs separados da entidade JPA.
 - **Domínio**: regras em `Coupon.create()` e `Coupon.delete()`; validações de expiração, desconto e sanitização do código no domínio.
-- **Exceções**: `BusinessException` com status HTTP configurável; `GlobalExceptionHandler` (`@RestControllerAdvice`) para respostas padronizadas e Bean Validation (erros de validação retornam mapa de campo → mensagem).
+- **Exceções**: `BusinessException` com status HTTP configurável; `GlobalExceptionHandler` com `@ControllerAdvice` e `@ResponseBody` (equivalente a `@RestControllerAdvice`) para respostas padronizadas e Bean Validation (erros de validação retornam mapa de campo → mensagem).
 - **Soft delete**: campo `deleted` na entidade; `@SQLRestriction("deleted = false")` (Hibernate) para não retornar deletados nas buscas; delete por id verifica “já deletado” via query nativa antes de chamar o domínio.
 - **Stack**: Spring Boot 4.0, Java 17, H2, JPA, SpringDoc (Swagger), Bean Validation.
