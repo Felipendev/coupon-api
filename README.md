@@ -15,18 +15,19 @@ API REST para cadastro e exclusão lógica de cupons, com regras de negócio enc
 ./mvnw spring-boot:run
 ```
 
-Ou, com Maven instalado:
+A API sobe em `http://localhost:8080`. Banco **H2** em memória; console H2 em http://localhost:8080/h2-console e Swagger em http://localhost:8080/swagger-ui.html.
 
-```bash
-mvn spring-boot:run
-```
+## API containerizada na AWS
 
-A API sobe em `http://localhost:8080`.
+A API está disponível em ambiente de demonstração, rodando em um container Docker em uma instância **Amazon EC2** (região us-east-2).
 
-- **Swagger UI**: http://localhost:8080/swagger-ui.html  
-- **OpenAPI JSON**: http://localhost:8080/v3/api-docs  
+| Recurso | URL |
+|--------|-----|
+| **Base** | http://ec2-3-144-142-96.us-east-2.compute.amazonaws.com:8080 |
+| **Swagger UI** | http://ec2-3-144-142-96.us-east-2.compute.amazonaws.com:8080/swagger-ui/index.html |
+| **OpenAPI (JSON)** | http://ec2-3-144-142-96.us-east-2.compute.amazonaws.com:8080/v3/api-docs |
 
-Banco em memória H2; console H2 em desenvolvimento: http://localhost:8080/h2-console (habilitado em `application.yaml`).
+A aplicação foi publicada como imagem Docker na máquina EC2 (porta 8080 exposta). O banco é H2 em memória dentro do container; os dados não persistem entre reinícios do container.
 
 ## Endpoints
 
@@ -72,6 +73,35 @@ Resposta (201): `id`, `code` (sanitizado, ex: `ABC123`), `description`, `discoun
 ## CI (GitHub Actions)
 
 O workflow em `.github/workflows/ci.yml` roda em **push** nas branches `main`, `dev`, `feature/**`, `fix/**`, `test/**`, `docs/**`, `chore/**` e `ci/**`, e em **pull request** para `main` e `dev`. Passos: checkout, Java 17 (Eclipse Temurin) com cache Maven e `./mvnw clean verify` (build, testes e checagem de cobertura ≥ 80%). O relatório JaCoCo é publicado como artefato da run.
+
+### Cobertura (≥ 80% nas regras de negócio)
+
+A cobertura é medida com **JaCoCo**. O mínimo de **80% de linhas** é exigido sobre o código de regras de negócio (domínio, service e controller); aplicação principal, DTOs e classes de exceção ficam fora da conta.
+
+**Como ver o relatório:**
+
+1. Rode os testes e gere o relatório:
+   ```bash
+   ./mvnw clean test jacoco:report
+   ```
+2. Abra no navegador o HTML:
+   ```
+   target/site/jacoco/index.html
+   ```
+   Você verá a cobertura por pacote e por classe (linhas e branches).
+
+**Como garantir o mínimo de 80%:**
+
+O plugin JaCoCo está configurado para **falhar o build** se a cobertura ficar abaixo de 80% no código considerado. Use:
+
+```bash
+./mvnw verify
+```
+
+Se a cobertura estiver abaixo do mínimo, o build falha com uma mensagem como:
+`Rule violated for bundle coupon-api: lines covered ratio is 0.xx, but expected minimum is 0.80`.
+
+O mínimo configurável está em `pom.xml` na propriedade `jacoco.minimum.line.coverage`.
 
 ## Docker
 
