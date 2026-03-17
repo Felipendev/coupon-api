@@ -1,16 +1,9 @@
-# Stage 1: build
-FROM eclipse-temurin:17 AS builder
-WORKDIR /build
+FROM eclipse-temurin:17-jre
 
-COPY mvnw .
-COPY .mvn .mvn
-COPY pom.xml .
-COPY src src
-
-RUN chmod +x mvnw && ./mvnw package -DskipTests -B
-
-# Stage 2: run
-FROM eclipse-temurin:17
 WORKDIR /app
-COPY --from=builder /build/target/coupon-api-*.jar app.jar
+
+COPY coupon-api-0.0.1-SNAPSHOT.jar app.jar
+
+EXPOSE 8080
+
 ENTRYPOINT ["java", "-jar", "app.jar"]
