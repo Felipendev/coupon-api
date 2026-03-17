@@ -9,53 +9,25 @@ API REST para cadastro e exclusão lógica de cupons, com regras de negócio enc
 - Java 17+
 - Maven 3.8+ (ou use o wrapper: `./mvnw`)
 
-## Ambientes (dev / prod)
-
-A aplicação usa **perfis Spring** para separar desenvolvimento e produção.
-
-| Perfil | Banco        | Uso                          |
-|--------|--------------|------------------------------|
-| **dev** (padrão) | H2 em memória | Desenvolvimento local, testes |
-| **prod**        | PostgreSQL   | Produção ou simulação com Docker |
-
-### Desenvolvimento (dev – padrão)
+## Execução local
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-Ou explicitamente:
+A API sobe em `http://localhost:8080`. Banco **H2** em memória; console H2 em http://localhost:8080/h2-console e Swagger em http://localhost:8080/swagger-ui.html.
 
-```bash
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
-```
+## API containerizada na AWS
 
-- Banco **H2** em memória; schema recriado a cada subida (`ddl-auto: create-drop`).
-- **Console H2** habilitado: http://localhost:8080/h2-console  
-- **Swagger** habilitado: http://localhost:8080/swagger-ui.html  
+A API está disponível em ambiente de demonstração, rodando em um container Docker em uma instância **Amazon EC2** (região us-east-2).
 
-### Produção (prod – PostgreSQL)
+| Recurso | URL |
+|--------|-----|
+| **Base** | http://ec2-3-144-142-96.us-east-2.compute.amazonaws.com:8080 |
+| **Swagger UI** | http://ec2-3-144-142-96.us-east-2.compute.amazonaws.com:8080/swagger-ui/index.html |
+| **OpenAPI (JSON)** | http://ec2-3-144-142-96.us-east-2.compute.amazonaws.com:8080/v3/api-docs |
 
-Variáveis de ambiente (recomendado em produção):
-
-- `SPRING_PROFILES_ACTIVE=prod`
-- `SPRING_DATASOURCE_URL=jdbc:postgresql://host:5432/coupondb`
-- `SPRING_DATASOURCE_USERNAME=...`
-- `SPRING_DATASOURCE_PASSWORD=...`
-
-Exemplo local com Postgres na porta 5432:
-
-```bash
-export SPRING_PROFILES_ACTIVE=prod
-export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/coupondb
-export SPRING_DATASOURCE_USERNAME=postgres
-export SPRING_DATASOURCE_PASSWORD=postgres
-./mvnw spring-boot:run
-```
-
-- Schema gerenciado pelo Hibernate (`ddl-auto: update`).
-- Console H2 e Swagger desligados por padrão (podem ser reativados via `SPRINGDOC_*` e `spring.h2.console.enabled`).
-- Pool Hikari configurado (tamanho, timeouts) para maior robustez.
+A aplicação foi publicada como imagem Docker na máquina EC2 (porta 8080 exposta). O banco é H2 em memória dentro do container; os dados não persistem entre reinícios do container.
 
 ## Endpoints
 
@@ -129,24 +101,21 @@ O mínimo configurável está em `pom.xml` na propriedade `jacoco.minimum.line.c
 
 ## Docker
 
-### Build da imagem
+Build e execução:
 
 ```bash
+cd /caminho/para/coupon-api
 docker build -t coupon-api .
+docker run -p 8080:8080 coupon-api
 ```
 
-### Execução com Docker Compose (ambiente prod + PostgreSQL)
-
-Sobe a API e um container PostgreSQL; a API usa o perfil **prod** e conecta no Postgres.
+Ou com Docker Compose:
 
 ```bash
 docker compose up --build
 ```
 
-- **API**: http://localhost:8080  
-- **PostgreSQL**: porta 5432 (usuário/senha: `postgres`, banco: `coupondb`)
-
-O healthcheck do Postgres garante que a API só inicia após o banco estar pronto.
+A API fica em http://localhost:8080 (H2 em memória dentro do container).
 
 ## Decisões técnicas
 
@@ -154,5 +123,4 @@ O healthcheck do Postgres garante que a API só inicia após o banco estar pront
 - **Domínio**: regras em `Coupon.create()` e `Coupon.delete()`; validações de expiração, desconto e sanitização do código no domínio.
 - **Exceções**: `BusinessException` com status HTTP configurável; `GlobalExceptionHandler` (`@RestControllerAdvice`) para respostas padronizadas e Bean Validation (erros de validação retornam mapa de campo → mensagem).
 - **Soft delete**: campo `deleted` na entidade; `@SQLRestriction("deleted = false")` (Hibernate) para não retornar deletados nas buscas; delete por id verifica “já deletado” via query nativa antes de chamar o domínio.
-- **Stack**: Spring Boot 4.0, Java 17, H2 (dev), PostgreSQL (prod), JPA, SpringDoc (Swagger), Bean Validation.
-- **Ambientes**: perfil `dev` (H2, console e Swagger ativos) e `prod` (PostgreSQL, variáveis de ambiente, pool Hikari, Swagger/H2 desabilitados por padrão).
+- **Stack**: Spring Boot 4.0, Java 17, H2, JPA, SpringDoc (Swagger), Bean Validation.
